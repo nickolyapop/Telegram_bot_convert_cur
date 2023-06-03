@@ -1,6 +1,6 @@
 TOKEN = "6121173627:AAHAgHZAGtyKsdEi055YlyZLHDG3adx5rdM"
 
-keys = {
+currencies = {
     'рубль': 'RUB',
     'доллар': 'USD',
     'евро': 'EUR',

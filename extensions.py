@@ -1,9 +1,9 @@
 import json
 import requests
-from config import keys
+from config import currencies
 
 # обрабтчик ошибок
-class ConversationException(Exception):
+class APIException(Exception):
     pass
 
 class CurrencyConverter:
@@ -15,26 +15,27 @@ class CurrencyConverter:
 
     def get_price(quote: str, base: str, amount: str):
         if quote == base:
-            raise ConversationException('Вы ввели одинаковые валюты.')
+            raise APIException('Вы ввели одинаковые валюты.')
 
-        if quote not in keys and base not in keys:
-            raise ConversationException(f'Обе валюты недоступны для бота или не существуют.\nСписок доступных валют: /values')
+        if quote not in currencies and base not in currencies:
+            raise APIException(f'Обе валюты недоступны для бота или не существуют.\nСписок доступных валют: /values')
 
         try:
-           quote_ticker = keys[quote]
+           quote_ticker = currencies[quote]
         except KeyError:
-            raise ConversationException(f'Валюта "{quote}" недоступна для бота или не существует.\nСписок доступных валют: /values')
+            raise APIException(f'Валюта "{quote}" недоступна для бота или не существует.\nСписок доступных валют: /values')
 
         try:
-            base_ticker = keys[base]
+            base_ticker = currencies[base]
         except KeyError:
-            raise ConversationException(f'Валюта "{base}"  недоступна для бота или не существует.\nСписок доступных валют: /values')
+            raise APIException(f'Валюта "{base}"  недоступна для бота или не существует.\nСписок доступных валют: /values')
 
         try:
-            amount = float(amount)
+            amount = float(amount.replace(",", "."))
         except ValueError:
-            raise ConversationException(f'Не удалось обработать количество: "{amount}"')
+            raise APIException(f'Не удалось обработать количество: "{amount}"')
 
         r = requests.get(f'https://min-api.cryptocompare.com/data/price?fsym={quote_ticker}&tsyms={base_ticker}')
-        total_base = json.loads(r.content)[keys[base]]
-        return total_base
+        price = json.loads(r.content)[currencies[base]]
+        total_base = price * float(amount)
+        return round(total_base, 3)
